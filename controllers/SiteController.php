@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace app\controllers;
 
+use app\services\UrlService;
 use Yii;
 use app\models\ContactForm;
 use app\models\LoginForm;
@@ -15,12 +16,10 @@ use yii\mail\MailerInterface;
 use yii\web\Controller;
 use yii\web\ErrorAction;
 use yii\web\Response;
-use app\models\Url;
-use chillerlan\QRCode\QRCode;
-use chillerlan\QRCode\QROptions;
 
 class SiteController extends Controller
 {
+    private UrlService $urlService;
     public $enableCsrfValidation=false;
     public function __construct(
         $id,
@@ -75,6 +74,12 @@ class SiteController extends Controller
         ];
     }
 
+    public function init()
+    {
+        parent::init();
+        $this->urlService = new UrlService();
+    }
+
     /**
      * Displays homepage.
      *
@@ -88,56 +93,21 @@ class SiteController extends Controller
     public function actionCreate()
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        $request = Yii::$app->request;
-        if (!$request->isAjax) {
+        if (!Yii::$app->request->isAjax) {
             return ['success' => false, 'error' => 'Only AJAX allowed'];
         }
 
-        $url = $request->post('url');
-        if (!filter_var($url, FILTER_VALIDATE_URL)) {
-            return ['success' => false, 'error' => 'Неверный формат URL'];
+        $url = Yii::$app->request->post('url');
+        try {
+            $result = $this->urlService->shorten($url);
+            return [
+                'success' => true,
+                'short_url' => $result['short_url'],
+                'qr_code' => $result['qr_data_uri'],
+            ];
+        } catch (\Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
         }
-
-        if (!Url::isUrlReachable($url)) {
-            return ['success' => false, 'error' => 'Данный URL не доступен'];
-        }
-
-        // Проверяем, есть ли уже такая ссылка в базе
-        $existing = Url::findOne(['original_url' => $url]);
-        if ($existing) {
-            $shortCode = $existing->short_code;
-        } else {
-            $shortCode = Url::generateShortCode();
-            $model = new Url();
-            $model->original_url = $url;
-            $model->short_code = $shortCode;
-            $model->save();
-        }
-
-        $shortUrl = Yii::$app->urlManager->createAbsoluteUrl([$shortCode]);
-        $qrCode = $this->generateQrCode($shortUrl);
-
-        return [
-            'success' => true,
-            'short_url' => $shortUrl,
-            'qr_code' => $qrCode,
-        ];
-    }
-
-    private function generateQrCode($url)
-    {
-        $options = new QROptions([
-            'version'    => 5,
-            'outputType' => QRCode::OUTPUT_IMAGE_PNG,
-            'eccLevel'   => QRCode::ECC_L,
-            'scale'      => 5,
-            'imageBase64' => true,
-        ]);
-
-        $qr = new QRCode($options);
-        $pngData = $qr->render($url); // возвращает Data URI в формате base64
-
-        return $pngData; // готовый Data URI для вставки в <img src="...">
     }
 
     /**

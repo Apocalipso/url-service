@@ -1,24 +1,27 @@
 <?php
 namespace app\controllers;
 
+use app\services\UrlService;
 use Yii;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
-use app\models\Url;
 
 class RedirectController extends Controller
 {
+    private UrlService $urlService;
+
+    public function init()
+    {
+        parent::init();
+        $this->urlService = new UrlService();
+    }
+
     public function actionIndex($code)
     {
-        $model = Url::findOne(['short_code' => $code]);
-        if (!$model) {
+        $originalUrl = $this->urlService->resolveAndTrack($code, Yii::$app->request->userIP);
+        if (!$originalUrl) {
             throw new NotFoundHttpException('Ссылка не найдена');
         }
-
-        // Логируем переход
-        $ip = Yii::$app->request->userIP;
-        $model->incrementClick($ip);
-
-        return $this->redirect($model->original_url);
+        return $this->redirect($originalUrl);
     }
 }
