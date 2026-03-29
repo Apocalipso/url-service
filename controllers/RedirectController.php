@@ -10,10 +10,10 @@ class RedirectController extends Controller
 {
     private UrlService $urlService;
 
-    public function init()
+    public function __construct($id, $module, UrlService $urlService, $config = [])
     {
-        parent::init();
-        $this->urlService = new UrlService();
+        $this->urlService = $urlService;
+        parent::__construct($id, $module, $config);
     }
 
     public function actionIndex($code)

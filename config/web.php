@@ -8,6 +8,16 @@ $config = [
     'basePath' => dirname(__DIR__),
     'bootstrap' => ['log'],
     'container' => [
+        'definitions' => [
+            app\services\UrlService::class => [
+                'class' => app\services\UrlService::class,
+                '__construct()' => [
+                    'repository' => app\repositories\UrlRepository::class,
+                    'checker' => app\services\UrlCheckService::class,
+                    'qrService' => app\services\QrService::class,
+                ],
+            ],
+        ],
         'singletons' => [
             \yii\mail\MailerInterface::class => [
                 'class' => \yii\symfonymailer\Mailer::class,

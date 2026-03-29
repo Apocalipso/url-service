@@ -26,8 +26,10 @@ class SiteController extends Controller
         $module,
         private readonly MailerInterface $mailer,
         private readonly Security $security,
+        UrlService $urlService,
         $config = [],
     ) {
+        $this->urlService = $urlService;
         parent::__construct($id, $module, $config);
     }
 
@@ -72,12 +74,6 @@ class SiteController extends Controller
                 'transparent' => true,
             ],
         ];
-    }
-
-    public function init()
-    {
-        parent::init();
-        $this->urlService = new UrlService();
     }
 
     /**
