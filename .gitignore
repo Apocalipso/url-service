@@ -1,0 +1,48 @@
+# Composer dependencies
+/vendor/
+/composer.lock
+
+# Yii2 runtime and assets
+/runtime/
+/web/assets/
+/yii
+
+# Environment configuration
+.env
+.env.local
+.env.*.local
+
+# IDE
+/.idea/
+/.vscode/
+*.swp
+*.swo
+*~
+.nbproject/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.bak
+
+# Docker
+docker-compose.override.yml
+
+# Logs
+*.log
+/var/log/
+
+# Testing
+/tests/_output/
+/tests/_support/_generated/
+
+# Temporary files
+*.tmp
+*.temp
+
+/web/uploads/
